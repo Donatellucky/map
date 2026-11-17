@@ -50,7 +50,7 @@ def main() -> None:
             "review_status": row["review_status"],
             "bbox": row["bbox"],
             "group": "confirmed_tiny_province" if row["review_status"] == "confirmed_province" else "probable_noise_candidate",
-            "action": "retain_as_valid_province" if row["review_status"] == "confirmed_tiny_province" else "retain_flagged_do_not_delete_automatically",
+            "action": "retain_as_valid_province" if row["review_status"] == "confirmed_province" else "retain_flagged_do_not_delete_automatically",
         })
 
     degree_rows = read_csv(TOPOLOGY / "provisional_province_degrees.csv")
