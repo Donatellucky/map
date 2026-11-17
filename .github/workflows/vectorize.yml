@@ -37,6 +37,9 @@ jobs:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
         run: python scripts/validate_polygon_release.py
 
+      - name: Build fixed-grid GeoJSON tile prototype
+        run: python scripts/build_geojson_tiles.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
