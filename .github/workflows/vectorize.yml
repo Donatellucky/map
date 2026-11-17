@@ -29,23 +29,28 @@ jobs:
 
       - name: Vectorize contours
         env:
-          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+          SOURCE_PNG: \${{ github.workspace }}/\${{ inputs.source_png }}
         run: python scripts/vectorize_provinces.py
 
       - name: Diagnose contour gaps (experimental)
         env:
-          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+          SOURCE_PNG: \${{ github.workspace }}/\${{ inputs.source_png }}
         run: python scripts/diagnose_contour_gaps.py
 
       - name: Localize contour-change hotspots (experimental)
         env:
-          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+          SOURCE_PNG: \${{ github.workspace }}/\${{ inputs.source_png }}
         run: python scripts/localize_contour_changes.py
+
+      - name: Audit border and tiny components
+        env:
+          SOURCE_PNG: \${{ github.workspace }}/\${{ inputs.source_png }}
+        run: python scripts/audit_border_and_tiny_components.py
 
       - name: Upload GeoJSON and diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: fauxlore-vectorization-${{ github.run_number }}
+          name: fauxlore-vectorization-\${{ github.run_number }}
           path: output/
           if-no-files-found: error
           retention-days: 14
