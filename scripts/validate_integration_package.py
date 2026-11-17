@@ -27,7 +27,7 @@ def main():
     need(len(fs)==m.get("feature_count")==v.get("feature_count"),"Feature counts disagree",errors)
     for f in fs:
         p=f.get("properties",{}); pid=p.get("province_id"); comp=p.get("source_component")
-        need(isinstance(pid,str) and re.fullmatch(r"STF-\\d{5}",pid or "") is not None,f"Bad province_id {pid}",errors)
+        need(isinstance(pid,str) and re.fullmatch("STF-[0-9]{5}",pid or "") is not None,f"Bad province_id {pid}",errors)
         need(pid not in byid,f"Duplicate province_id {pid}",errors); byid[pid]=p
         try:
             comp=int(comp); need(comp not in bycomp,f"Duplicate source_component {comp}",errors); bycomp[comp]=pid
