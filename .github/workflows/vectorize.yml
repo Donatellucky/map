@@ -57,6 +57,11 @@ jobs:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
         run: python scripts/audit_component_6644_gap.py
 
+      - name: Find minimal repair for component 6644
+        env:
+          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+        run: python scripts/find_minimal_6644_repair.py
+
       - name: Upload GeoJSON and diagnostics
         uses: actions/upload-artifact@v4
         with:
