@@ -32,6 +32,11 @@ jobs:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
         run: python scripts/vectorize_provinces.py
 
+      - name: Diagnose contour gaps (experimental)
+        env:
+          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+        run: python scripts/diagnose_contour_gaps.py
+
       - name: Upload GeoJSON and diagnostics
         uses: actions/upload-artifact@v4
         with:
