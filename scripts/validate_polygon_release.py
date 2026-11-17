@@ -139,7 +139,8 @@ def main():
       "coordinate_system":report["coordinate_system"],
       "files":["provinces.geojson","region_stats.csv","summary.json","validation_report.json"],
       "feature_count":len(features),
-      "stable_id":"source connected-component label",
+      "provisional_id":"source connected-component label; deterministic only while source raster topology is unchanged",
+      "canonical_id_policy":"assign persistent province_id values from an explicit registry after all topology corrections; do not treat connected-component labels as permanent IDs",
       "validation":"exact raster round-trip; Shapely validity; pixel-area and bounds checks; CSV/GeoJSON ID parity",
       "scope":"geometry extraction only; no gameplay visibility, political ownership, map projection, or Leaflet transforms",
       "known_exceptions":report["notes"]
