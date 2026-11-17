@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,11 +33,9 @@ def main() -> None:
     geo = json.loads((RELEASE / "provinces.geojson").read_text(encoding="utf-8"))
     features = geo["features"]
     by_component = {}
-    by_id = {}
     for feature in features:
         p = feature["properties"]
         by_component[int(p["source_component"])] = p
-        by_id[p["province_id"]] = p
 
     tiny = read_csv(AUDIT / "component_audit" / "tiny_regions.csv")
     tiny_counts = Counter(row["review_status"] for row in tiny)
@@ -51,8 +49,8 @@ def main() -> None:
             "pixel_area": int(row["pixel_area"]),
             "review_status": row["review_status"],
             "bbox": row["bbox"],
-            "group": "confirmed_tiny_province" if row["review_status"] == "confirmed_tiny_province" else "probable_noise_candidate",
-            "action": "retain_as_valid_province" if row["review_status"] == "confirmed_tiny_province" else "retain_flagged_do_not_delete_automatically",
+            "group": "confirmed_tiny_province" if row["review_status"] == "confirmed_province" else "probable_noise_candidate",
+            "action": "retain_as_valid_province" if row["review_status"] == "confirmed_province" else "retain_flagged_do_not_delete_automatically",
         })
 
     degree_rows = read_csv(TOPOLOGY / "provisional_province_degrees.csv")
@@ -183,7 +181,7 @@ def main() -> None:
         "province_count": len(features),
         "quality_strategy": "group similar issue types; retain ambiguous geometry; repair only confirmed defect classes in batches",
         "tiny_components_total": len(tiny),
-        "confirmed_tiny_provinces": tiny_counts.get("confirmed_tiny_province", 0),
+        "confirmed_tiny_provinces": tiny_counts.get("confirmed_province", 0),
         "probable_noise_retained": tiny_counts.get("probable_noise", 0),
         "isolated_geographic_regions": len(isolated),
         "high_degree_regions_30_plus": len(high_degree),
@@ -191,7 +189,7 @@ def main() -> None:
         "near_boundary_pairs": len(near),
         "known_merged_regions": len(validation.get("known_merged_components_pending_split", [])),
         "intentional_non_gameplay_regions": len(validation.get("non_gameplay_areas", [])),
-        "retained_edge_sea_provinces": spatial.get("province_count", 0) and 14,
+        "retained_edge_sea_provinces": validation.get("retained_edge_components", 0),
         "geometry_validation": {
             "invalid_or_empty_geometries": validation.get("invalid_or_empty_geometries"),
             "geometry_area_mismatches": validation.get("geometry_area_mismatches"),
