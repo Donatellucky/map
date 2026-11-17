@@ -46,6 +46,11 @@ jobs:
       - name: Build read-only province topology and tile indexes
         run: python scripts/build_province_topology.py
 
+      - name: Build raster contour adjacency candidates
+        env:
+          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+        run: python scripts/build_raster_adjacency_candidates.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
