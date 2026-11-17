@@ -57,6 +57,9 @@ jobs:
       - name: Package provisional adjacency and spatial index
         run: python scripts/package_adjacency_and_spatial_index.py
 
+      - name: Build grouped geometry and topology quality register
+        run: python scripts/build_grouped_quality_register.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
