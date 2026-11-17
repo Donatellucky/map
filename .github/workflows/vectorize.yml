@@ -54,6 +54,9 @@ jobs:
       - name: Build provisional province adjacency graph
         run: python scripts/build_provisional_adjacency_graph.py
 
+      - name: Package provisional adjacency and spatial index
+        run: python scripts/package_adjacency_and_spatial_index.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
