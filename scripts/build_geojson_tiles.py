@@ -53,6 +53,8 @@ def main() -> None:
     if not SOURCE.exists():
         raise FileNotFoundError(f"Validated release not found: {SOURCE}")
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    source_manifest_path = RELEASE / "manifest.json"
+    source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8")) if source_manifest_path.exists() else {}
     features = source.get("features", [])
     if not features:
         raise ValueError("Validated release contains no features.")
@@ -99,7 +101,7 @@ def main() -> None:
                         **props,
                         "source_component": source_id,
                         "tile_id": tile_id,
-                        "tile_clipped": True,
+                        "tile_clipped": not geom.equals(clipped),
                     },
                     "geometry": mapping(clipped),
                 }
@@ -172,7 +174,7 @@ def main() -> None:
             "epsilon": AREA_EPSILON,
         },
         "tiles": tile_manifest,
-        "known_exceptions": source.get("properties", {}).get("known_exceptions", []),
+        "known_exceptions": source_manifest.get("known_exceptions", []),
     }
     (OUT / "tile_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({
