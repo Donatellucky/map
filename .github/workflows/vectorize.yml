@@ -51,6 +51,9 @@ jobs:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
         run: python scripts/build_raster_adjacency_candidates.py
 
+      - name: Build provisional province adjacency graph
+        run: python scripts/build_provisional_adjacency_graph.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
