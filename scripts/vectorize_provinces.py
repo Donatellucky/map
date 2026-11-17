@@ -16,7 +16,6 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 from rasterio.features import shapes
-from skimage.transform import resize
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path(os.environ.get("SOURCE_PNG", ROOT / "fauxlore_map_KONTUR.png"))
@@ -58,6 +57,9 @@ def main() -> None:
     if not region_ids:
         raise ValueError("No enclosed regions found. Check contour threshold/connectivity.")
 
+    # Precompute component bounding boxes once (avoid rescanning the full 100M-pixel raster per region).
+    objects = ndimage.find_objects(labels, max_label=count)
+
     # Polygonize label raster in source pixel coordinates.
     geometries: dict[int, list[dict]] = defaultdict(list)
     for geom, value in shapes(labels, mask=np.isin(labels, region_ids), connectivity=4):
@@ -72,7 +74,12 @@ def main() -> None:
         if not parts:
             continue
         geometry = parts[0] if len(parts) == 1 else {"type": "GeometryCollection", "geometries": parts}
-        yy, xx = np.where(labels == region_id)
+        bbox = objects[region_id - 1]
+        if bbox is None:
+            continue
+        y_slice, x_slice = bbox
+        min_x, min_y = int(x_slice.start), int(y_slice.start)
+        max_x, max_y = int(x_slice.stop), int(y_slice.stop)
         area = int(counts[region_id])
         feature = {
             "type": "Feature",
@@ -81,14 +88,12 @@ def main() -> None:
                 "region_id": f"region_{idx:05d}",
                 "source_component": int(region_id),
                 "pixel_area": area,
-                "bbox": [int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1],
+                "bbox": [min_x, min_y, max_x, max_y],
             },
             "geometry": geometry,
         }
         features.append(feature)
-        rows.append((idx, region_id, area, int(xx.min()), int(yy.min()),
-                     int(xx.max()) + 1, int(yy.max()) + 1, len(parts)))
-        del yy, xx
+        rows.append((idx, region_id, area, min_x, min_y, max_x, max_y, len(parts)))
 
     geojson = {
         "type": "FeatureCollection",
