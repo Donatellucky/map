@@ -24,7 +24,7 @@ def main() -> None:
     for row in rows:
         source_component = int(row["source_component"])
         province_id = row["province_id"].strip()
-        if not re.fullmatch(r"STF-\\d{5}", province_id):
+        if not re.fullmatch(r"STF-\d{5}", province_id):
             raise ValueError(f"Province ID must match STF-00001 format: {row}")
         if source_component in registry or province_id in province_ids:
             raise ValueError(f"Duplicate registry entry: {row}")
