@@ -115,7 +115,7 @@ def main() -> None:
             "geometry": geometry,
         }
         features.append(feature)
-        rows.append((idx, region_id, area, min_x, min_y, max_x, max_y, len(parts)))
+        rows.append((region_id, region_id, area, min_x, min_y, max_x, max_y, len(parts)))
 
     geojson = {
         "type": "FeatureCollection",
