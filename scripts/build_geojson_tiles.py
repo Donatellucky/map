@@ -167,7 +167,7 @@ def main() -> None:
         "source_feature_count": len(features),
         "tile_count": len(tile_manifest),
         "tile_fragment_count": sum(item["feature_fragments"] for item in tile_manifest),
-        "identity_policy": "source_component is preserved; IDs are provisional until a canonical registry is approved after topology corrections",
+        "identity_policy": "province_id is the persistent registry identity; source_component is retained as the current raster segmentation label",
         "area_conservation": {
             "status": "passed",
             "mismatched_components": 0,
