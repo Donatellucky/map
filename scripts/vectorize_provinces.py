@@ -166,7 +166,7 @@ def main() -> None:
         "dimensions": [width, height],
         "contour_pixels": contour_pixels,
         "connected_components_including_background": int(count),
-        "excluded_border_components": len(exterior),
+        "excluded_border_components": 1,
         "enclosed_regions_exported": len(features),
         "smallest_region_pixels": int(min(areas)),
         "largest_region_pixels": int(max(areas)),
