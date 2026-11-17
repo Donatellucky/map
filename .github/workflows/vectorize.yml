@@ -43,6 +43,9 @@ jobs:
       - name: Build fixed-grid GeoJSON tile prototype
         run: python scripts/build_geojson_tiles.py
 
+      - name: Build read-only province topology and tile indexes
+        run: python scripts/build_province_topology.py
+
       - name: Diagnose contour gaps (experimental)
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
