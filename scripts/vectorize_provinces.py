@@ -66,8 +66,13 @@ def main() -> None:
         raise ValueError(f"Expected one exterior component touching all four sides; found {len(exterior_candidates)}.")
     exterior_id = max(exterior_candidates, key=lambda component_id: counts[component_id])
     region_ids = [i for i in range(1, count + 1) if i != exterior_id and counts[i] > 0]
-    confirmed_sea_provinces = set([39,100,364,793,1409,1875,2397,3463,3569,3810,3979,4280,4441,4676])
-    confirmed_tiny_provinces = set([615,741,776,848,1499,4176,4328,5006,5012,5706,6635])
+    confirmed_sea_provinces = {
+        9, 15, 23, 24, 30, 36, 5159, 6628,
+        39, 100, 364, 793, 1409, 1875, 2397, 3463, 3569, 3810, 3979, 4280, 4441, 4676,
+    }
+    confirmed_tiny_provinces = {615, 741, 776, 848, 1499, 4176, 4328, 5006, 5012, 5706, 6635}
+    non_gameplay_areas = {2848}
+    known_merged_components = {6644}
     tiny_review_limit = 25
     if not region_ids:
         raise ValueError("No enclosed regions found. Check contour threshold/connectivity.")
@@ -106,8 +111,15 @@ def main() -> None:
                 "bbox": [min_x, min_y, max_x, max_y],
                 "touches_image_edge": region_id in border_ids,
                 "edge_sides": touches.get(region_id, []),
-                "province_class": "sea" if region_id in confirmed_sea_provinces else "unclassified",
+                "province_class": (
+                    "non_gameplay" if region_id in non_gameplay_areas else
+                    "sea" if region_id in confirmed_sea_provinces or region_id in known_merged_components else
+                    "unclassified"
+                ),
+                "region_role": "non_gameplay_area" if region_id in non_gameplay_areas else "province",
                 "review_status": (
+                    "confirmed_non_gameplay" if region_id in non_gameplay_areas else
+                    "known_merged_components_pending_split" if region_id in known_merged_components else
                     "confirmed_province" if region_id in confirmed_tiny_provinces else
                     "probable_noise" if area < tiny_review_limit else "not_reviewed"
                 ),
@@ -174,11 +186,16 @@ def main() -> None:
         "regions_under_25_pixels": int(sum(a < 25 for a in areas)),
         "regions_under_100_pixels": int(sum(a < 100 for a in areas)),
         "confirmed_tiny_provinces": len(confirmed_tiny_provinces),
+        "confirmed_sea_provinces": len(confirmed_sea_provinces),
+        "confirmed_non_gameplay_areas": len(non_gameplay_areas),
+        "known_merged_components_pending_split": len(known_merged_components),
         "probable_noise_regions_retained_for_review": sum(1 for feature in features if feature["properties"]["review_status"] == "probable_noise"),
         "coordinate_system": "source PNG pixels; origin top-left; x right; y down",
         "warnings": [
             "This is a first-pass raster polygonization; inspect diagnostics for open contour gaps and accidental merges.",
-            "Fourteen image-edge components were author-confirmed as sea provinces and retained.",
+            "Twenty-two components were author-confirmed as sea provinces and retained.",
+            "Component 2848 is an intentional non-gameplay area and must not receive gameplay mechanics.",
+            "Component 6644 is a known merge of two sea provinces and remains pending a precise split.",
             "Tiny components not author-confirmed as provinces are tagged probable_noise but retained.",
             "Only author-confirmed edge provinces receive the sea classification.",
             "No geographic CRS or Leaflet transform has been applied.",

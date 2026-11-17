@@ -25,12 +25,17 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: python -m pip install --upgrade pip numpy pillow scipy rasterio
+        run: python -m pip install --upgrade pip numpy pillow scipy rasterio shapely
 
       - name: Vectorize contours
         env:
           SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
         run: python scripts/vectorize_provinces.py
+
+      - name: Validate polygon geometry and prepare release candidate
+        env:
+          SOURCE_PNG: ${{ github.workspace }}/${{ inputs.source_png }}
+        run: python scripts/validate_polygon_release.py
 
       - name: Diagnose contour gaps (experimental)
         env:
