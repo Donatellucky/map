@@ -22,6 +22,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 CROSS = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=np.uint8)
 CROP_SIZE = 640
 SMALL_LIMIT = 25
+CONFIRMED_SEA_PROVINCES = set([39,100,364,793,1409,1875,2397,3463,3569,3810,3979,4280,4441,4676])
+CONFIRMED_TINY_PROVINCES = set([615,741,776,848,1499,4176,4328,5006,5012,5706,6635])
 
 
 def crop_box(cx: int, cy: int, width: int, height: int, size: int = CROP_SIZE):
@@ -80,6 +82,10 @@ def main() -> None:
             "height": max_y - min_y,
             "touches": ";".join(sides),
             "edge_spans_json": json.dumps(edge_positions, separators=(",", ":")),
+            "classification": (
+                "confirmed_sea_province" if component_id in CONFIRMED_SEA_PROVINCES else
+                "exterior_canvas" if len(sides) == 4 else "unclassified_edge_component"
+            ),
         })
 
         # One full-resolution crop for each touched edge, centred on its contact interval.
@@ -108,7 +114,7 @@ def main() -> None:
             contact_panels.append((component_id, side, panel))
 
     with (OUT / "border_components.csv").open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["component_id", "pixel_area", "bbox", "width", "height", "touches", "edge_spans_json"])
+        writer = csv.DictWriter(f, fieldnames=["component_id", "pixel_area", "bbox", "width", "height", "touches", "edge_spans_json", "classification"])
         writer.writeheader()
         writer.writerows(border_rows)
 
@@ -149,10 +155,11 @@ def main() -> None:
             "component_id": cid, "pixel_area": int(counts[cid]),
             "bbox": [min_x, min_y, max_x, max_y],
             "centroid": [cx, cy],
+            "review_status": "confirmed_province" if cid in CONFIRMED_TINY_PROVINCES else "probable_noise",
         })
 
     with (OUT / "tiny_regions.csv").open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["component_id", "pixel_area", "bbox", "centroid"])
+        writer = csv.DictWriter(f, fieldnames=["component_id", "pixel_area", "bbox", "centroid", "review_status"])
         writer.writeheader()
         writer.writerows(small_rows)
 
@@ -173,10 +180,14 @@ def main() -> None:
         "dimensions": [w, h],
         "connectivity": 4,
         "border_component_count": len(border_ids),
+        "contour_label_zero_excluded": True,
+        "confirmed_sea_province_ids": sorted(CONFIRMED_SEA_PROVINCES),
         "border_components": border_rows,
         "tiny_region_threshold_pixels": SMALL_LIMIT,
         "tiny_enclosed_regions_count": len(small_rows),
-        "warning": "Diagnostic only. Border-touching components may be exterior background OR legitimate map regions; do not include or discard them without review.",
+        "confirmed_tiny_province_ids": sorted(CONFIRMED_TINY_PROVINCES),
+        "probable_noise_tiny_component_ids": sorted(row["component_id"] for row in small_rows if row["review_status"] == "probable_noise"),
+        "warning": "Author-confirmed sea/tiny provinces are classified. Other tiny components are marked probable_noise, not deleted; review before final clean export.",
     }
     (OUT / "component_audit.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({k: v for k, v in summary.items() if k != "border_components"}, ensure_ascii=False, indent=2))
