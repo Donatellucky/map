@@ -86,8 +86,8 @@ def main() -> None:
         diff_crop = changed[y0:y1, x0:x1]
 
         # White background, black contours. Diff panel overlays changed pixels in red.
-        base_rgb = np.where(base_crop[:, :, None], 0, 255).astype(np.uint8)
-        cand_rgb = np.where(cand_crop[:, :, None], 0, 255).astype(np.uint8)
+        base_rgb = np.repeat(np.where(base_crop[:, :, None], 0, 255).astype(np.uint8), 3, axis=2)
+        cand_rgb = np.repeat(np.where(cand_crop[:, :, None], 0, 255).astype(np.uint8), 3, axis=2)
         diff_rgb = base_rgb.copy()
         diff_rgb[diff_crop] = (255, 0, 0)
         panels = [Image.fromarray(a, "RGB") for a in (base_rgb, cand_rgb, diff_rgb)]
