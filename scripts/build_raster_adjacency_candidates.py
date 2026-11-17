@@ -72,6 +72,8 @@ def main() -> None:
         registry_rows = list(csv.DictReader(stream))
     id_by_component = {int(row["source_component"]): row["province_id"] for row in registry_rows}
     known_components = set(id_by_component)
+    registry_mask = np.zeros(count + 1, dtype=bool)
+    registry_mask[list(known_components)] = True
 
     # Process only regions that are present in the validated release.
     exterior_candidates = set()
@@ -102,16 +104,19 @@ def main() -> None:
                 for step in range(1, distance):
                     iy0, ix0 = y0 + dy * step, 0
                     iy1 = y1 + dy * step
-                    if dx >= 0:
-                        middle_slice = (slice(iy0, iy1), slice(0, width - distance * dx))
+                    if dx > 0:
+                        middle_x = slice(step, width - distance + step)
+                    elif dx < 0:
+                        middle_x = slice(distance - step, width - step)
                     else:
-                        middle_slice = (slice(iy0, iy1), slice(-distance * dx, width))
+                        middle_x = slice(0, width)
+                    middle_slice = (slice(iy0, iy1), middle_x)
                     valid &= contour[middle_slice]
                 if not np.any(valid):
                     continue
                 left = a[valid].astype(np.int64, copy=False)
                 right = b[valid].astype(np.int64, copy=False)
-                valid_registry = np.isin(left, list(known_components)) & np.isin(right, list(known_components))
+                valid_registry = registry_mask[left] & registry_mask[right]
                 if not np.any(valid_registry):
                     continue
                 raw = np.column_stack((left[valid_registry], right[valid_registry]))
